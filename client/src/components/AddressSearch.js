@@ -1,19 +1,25 @@
 import React, {useEffect, useState} from "react";
 import { Input } from "antd";
 import { withError } from "antd/lib/modal/confirm";
+import { useMediaQuery } from 'react-responsive'
 // Antd object destructuring.
 const { Search } = Input;
 
 
 const AddressSearch = () => {
-  const mediaMatch = window.matchMedia('(min-width: 500px)');
-  const [wideScreen, setWideScreen] = useState(mediaMatch.matches);
-  useEffect(() => {
-    const handler = e => setWideScreen(e.matches);
-    mediaMatch.addListener(handler);
-    console.log(styles.container(wideScreen).width)
-    return () => mediaMatch.removeListener(handler);
-  });
+  const isDesktop = useMediaQuery({
+    query: '(min-device-width: 1224px)'
+  })
+  const [testVal, setTestVal] = useState("");
+
+  const callApi = async () => {
+    const response = await fetch('/api/hello');
+    const body = await response.json();
+    if (response.status !== 200) throw Error(body.message);
+    
+    setTestVal(body.express)
+  };
+
   return (
     <div
       style={{
@@ -30,19 +36,22 @@ const AddressSearch = () => {
         </h1>
       </div>
       <Search
-        style={{width: styles.container(wideScreen).width}}
+        style={{width: isDesktop ? "50%" : "100%"}}
         placeholder="Enter an address"
         enterButton="Search"
         size="large"
-        onSearch={(value) => console.log(value)}
+        onSearch={(value) => callApi()}
       />
+      <h2>{testVal}</h2>
     </div>
   );
 }
+/*
 const styles = {
-  container: wideScreen => ({
-    width: wideScreen ? "50%" : "100%",
+  container: isWidescreen => ({
+    width: !isWidescreen ? "50%" : "100%",
   })
 };
+*/
 
 export default AddressSearch;
