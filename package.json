@@ -1,13 +1,27 @@
 {
   "name": "urban_suburban",
   "version": "1.0.0",
+  "engines": {
+    "node": "^12.0.0"
+  },
   "scripts": {
-    "start": "cd server && node server.js",
-    "client": "cd client && yarn start",
-    "server": "cd server && nodemon server.js",
-    "dev": "concurrently --kill-others-on-fail \"yarn server\" \"yarn client\""
+    "start": "node server.js ",
+    "server": "node server.js",
+    "server-dev": "nodemon server.js",
+    "client": "npm start --prefix client",
+    "dev": "concurrently \"npm run server-dev\" \"npm run client\""
   },
   "devDependencies": {
-    "concurrently": "^4.0.1"
+    "concurrently": "^4.0.1",
+    "nodemon": "^2.0.4"
+  },
+  "dependencies": {
+    "body-parser": "^1.19.0",
+    "dotenv": "^8.2.0",
+    "express": "^4.17.1",
+    "knex": "^0.21.2",
+    "path": "^0.12.7",
+    "pg": "^8.3.0",
+    "process": "^0.11.10"
   }
 }

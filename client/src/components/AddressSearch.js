@@ -1,23 +1,30 @@
-import React, {useEffect, useState} from "react";
+import React, { useEffect, useState } from "react";
 import { Input } from "antd";
 import { withError } from "antd/lib/modal/confirm";
-import { useMediaQuery } from 'react-responsive'
+import { useMediaQuery } from "react-responsive";
 // Antd object destructuring.
 const { Search } = Input;
 
-
 const AddressSearch = () => {
   const isDesktop = useMediaQuery({
-    query: '(min-device-width: 1224px)'
-  })
+    query: "(min-device-width: 1224px)",
+  });
   const [testVal, setTestVal] = useState("");
 
-  const callApi = async () => {
-    const response = await fetch('/api/hello');
+  // 1001020100
+  const callApi = async (value) => {
+    const response = await fetch("/api/tracts", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({geoid: parseInt(value)}),
+    });
+    
     const body = await response.json();
     if (response.status !== 200) throw Error(body.message);
-    
-    setTestVal(body.express)
+    console.log(body);
+    setTestVal(body[0].geoid);
   };
 
   return (
@@ -26,7 +33,7 @@ const AddressSearch = () => {
         justifyContent: "center",
         alignItems: "center",
         margin: "8% auto",
-        display: "float"
+        display: "float",
       }}
     >
       <div>
@@ -36,16 +43,16 @@ const AddressSearch = () => {
         </h1>
       </div>
       <Search
-        style={{width: isDesktop ? "50%" : "100%"}}
+        style={{ width: isDesktop ? "50%" : "100%" }}
         placeholder="Enter an address"
         enterButton="Search"
         size="large"
-        onSearch={(value) => callApi()}
+        onSearch={(value) => callApi(value)}
       />
       <h2>{testVal}</h2>
     </div>
   );
-}
+};
 /*
 const styles = {
   container: isWidescreen => ({

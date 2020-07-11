@@ -8,5 +8,5 @@
 }
 
 h1 {
-  font-size: calc(68px * vmin);
+  font-size: calc(68px * 1vmin);
 }
