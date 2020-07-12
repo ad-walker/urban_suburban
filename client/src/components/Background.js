@@ -9,7 +9,6 @@ function Background(props) {
         backgroundSize: "contain",
         backgroundPosition: "center bottom",
         width: "100%",
-        height: "auto",
         minHeight: "100vh",
         backgroundRepeat: "no-repeat",
         backgroundColor: "white"

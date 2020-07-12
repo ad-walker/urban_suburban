@@ -13,10 +13,7 @@ function NavHeader(props) {
           <Button type="text" size="large">
             Something
           </Button>,
-          <Button type="text" size="large">
-            Something
-          </Button>,
-          <Button type="primary" size="large">
+          <Button type="primary" size="large" shape="round">
           Something
         </Button>,
         ]}

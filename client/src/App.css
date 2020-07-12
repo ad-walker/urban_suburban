@@ -6,7 +6,26 @@
   flex-direction: column;
   font-size: calc(10px + 2vmin);
 }
+html, body {
+  overflow-x: hidden;
+}
+body {
+  position: relative;
+}
 
 h1 {
   font-size: calc(68px * 1vmin);
+}
+
+.location-search-input,
+.location-search-input:focus,
+.location-search-input:active {
+  font-size: 16px;
+}
+
+.autocomplete-dropdown-container {
+  font-size: 16px;
+  font-weight: 500;
+  color: #6e6e6e;
+  z-index: 1000;
 }

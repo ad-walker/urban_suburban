@@ -5,6 +5,7 @@ const path = require("path");
 const express = require("express");
 const bodyParser = require("body-parser");
 const Knex = require("knex");
+const fetch = require("node-fetch");
 const app = express();
 app.enable("trust proxy");
 // If not in production, read the local .env file.
@@ -15,7 +16,6 @@ console.log("Enviornment: " + process.env.NODE_ENV);
 // Automatically parse request body as form data.
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use(bodyParser.json());
-
 
 // [START cloud_sql_postgres_knex_create_tcp]
 const connectWithTcp = (config) => {
@@ -106,14 +106,35 @@ const connect = () => {
 const knex = connect();
 
 const getData = async (knex, id) => {
-  return await knex.select("geoid").from("tracts").where("geoid", id).limit(1);
+  return await knex.select("*").from("tracts").where("geoid", id).limit(1);
 };
 
-app.post("/api/tracts", async (req, res) => {
-  console.log("Request Body: " + req.body.geoid);
+app.post("/api/geoid", async (req, res) => {
+  if (!verifySignature(req)) {
+    res.status(500);
+    return;
+  }
   let result = await getData(knex, req.body.geoid);
-  //console.log("Result: " + result[0].geoid);
   res.status(200).json(result);
+});
+
+app.post("/api/address", async (req, res) => {
+  if (!verifySignature(req)) {
+    res.status(500);
+    return;
+  }
+
+  fetch(req.body.url)
+    .then((res) => res.json())
+    .then((json) => {
+      // Default to -1 in case we can't find a value.
+      let result = { id: -1 };
+      if (json.result.addressMatches.length > 0) {
+        result.id =
+          json.result.addressMatches[0].geographies["Census Tracts"][0].GEOID;
+      }
+      res.status(200).json(result);
+    });
 });
 
 if (process.env.NODE_ENV === "production") {
@@ -130,5 +151,13 @@ const PORT = process.env.PORT || 8080;
 const server = app.listen(PORT, () => {
   console.log(`App listening on port ${PORT}`);
 });
+
+const verifySignature = (req) => {
+  const crypto = require("crypto");
+  const rawString = JSON.stringify(req.body);
+  // prettier-ignore
+  const hmac = crypto.createHmac("sha256",process.env.REACT_APP_SIGNING_SECRET);
+  return hmac.update(rawString).digest("hex") === req.headers.signature;
+};
 
 module.exports = server;
