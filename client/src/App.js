@@ -1,7 +1,7 @@
 import React from "react";
 import AddressSearch from "./components/AddressSearch";
 import Page from "./components/Page";
-import "./App.css";
+import "./index.css";
 import "antd/dist/antd-red.css";
 
 function App() {

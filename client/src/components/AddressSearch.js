@@ -1,94 +1,70 @@
 import React, { useState } from "react";
-import { Input, Button, Spin } from "antd";
-import PlacesAutocomplete from "react-places-autocomplete";
+import LocationResult from "./LocationResult";
+import { Input, Button, Spin, Modal } from "antd";
 import { SearchOutlined } from "@ant-design/icons";
+import PlacesAutocomplete from "react-places-autocomplete";
 import { geocodeByAddress } from "react-places-autocomplete";
 import { useMediaQuery } from "react-responsive";
-import { createRequestSignature } from "../helpers";
+import { censusAPI, queryOnGeoId } from "../api";
 
 // Import React Scrit Libraray to load Google object
 import Script from "react-load-script";
 
 const AddressSearch = () => {
+  const [addressString, setAddressString] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
+  const [queryObj, setQueryObj] = useState(null);
+  const [modalIsVisible, setModalIsVisible] = useState(false);
+  const [searchEnabled, setSearchEnabled] = useState(false);
+  const [queryResults, setQueryResults] = useState({});
   const isDesktop = useMediaQuery({
     query: "(min-device-width: 1224px)",
   });
-  const [testVal, setTestVal] = useState("");
-  const [address, setAddress] = useState();
-  const [isLoading, setIsLoading] = useState(false);
-  const [queryObj, setQueryObj] = useState({});
-  const [searchEnabled, setSearchEnabled] = useState(false);
-
-  // 1001020100
-  const queryDB = async (value) => {
-    const reqBody = JSON.stringify({ geoid: parseInt(value) });
-    const signature = createRequestSignature(reqBody);
-    const response = await fetch("/api/geoid", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Signature: signature,
-      },
-      body: reqBody,
-    });
-
-    const result = await response.json();
-    if (response.status !== 200) throw Error(result.message);
-    console.log(result);
-    let classification = "";
-    switch (result[0].upsai_cat_controlled) {
-      case 1:
-        classification = "Urban";
-        break;
-      case 2:
-        classification = "Suburban";
-        break;
-      case 3:
-        classification = "Rural";
-        break;
-      default:
-        classification = "Unknown";
-        break;
-    }
-    setTestVal(classification);
-    setIsLoading(false);
+  const handleChange = (address) => {
+    // Rely on selection from the suggestion list,
+    // be it via click or keyboard selection to enable
+    // search.
+    setSearchEnabled(false)
+    setAddressString(address);
   };
 
-  const censusAPI = async () => {
+  const handleButtonClick = async () => {
+    if (!searchEnabled) return;
     setIsLoading(true);
-    var url = new URL(
-      "https://geocoding.geo.census.gov/geocoder/geographies/address"
-    );
-    Object.keys(queryObj).forEach((key) =>
-      url.searchParams.append(key, queryObj[key])
-    );
-
-    let reqBody = JSON.stringify({ url: url });
-    let signature = createRequestSignature(reqBody);
-
-    fetch("/api/address", {
-      method: "POST",
-      headers: { "Content-Type": "application/json", Signature: signature },
-      body: reqBody,
-    })
-      .then((response) => response.json())
-      .then((json) => {
-        queryDB(json.id);
+    // Query the census endpoint and append a classification
+    // to the object for use by the modal.
+    censusAPI(queryObj)
+      .then((id) => queryOnGeoId(id))
+      .then((response) => {
+        let classification = "";
+        switch (response[0].upsai_cat_controlled) {
+          case 1:
+            classification = "Urban";
+            break;
+          case 2:
+            classification = "Suburban";
+            break;
+          case 3:
+            classification = "Rural";
+            break;
+          default:
+            classification = "Unknown";
+            break;
+        }
+        response.classification = classification;
+        // Set a whole mess o' state.
+        setQueryResults(response);
+        setIsLoading(false);
+        setModalIsVisible(true);
       });
   };
 
-  const handleChange = (address) => {
-    setAddress(address);
-  };
-
   const handleSelect = (address) => {
-    setAddress(address);
-    setTestVal("");
-
+    setAddressString(address);
     geocodeByAddress(address)
       .then((results) => {
         console.log(results);
-        let censusQuery = {benchmark: 4, vintage: 417, format: "json"};
+        let censusQuery = { benchmark: 4, vintage: 417, format: "json" };
         for (let i = 0; i < results[0].address_components.length; i++) {
           // prettier-ignore
           for (let j = 0; j < results[0].address_components[i].types.length; j++) {
@@ -113,7 +89,6 @@ const AddressSearch = () => {
             }
           }
         }
-
         setQueryObj(censusQuery);
         setSearchEnabled(true);
       })
@@ -128,6 +103,7 @@ const AddressSearch = () => {
     <div
       style={{
         justifyContent: "center",
+        textAlign: "center",
         alignItems: "center",
         margin: "8% 0 0 0",
         display: "float",
@@ -142,17 +118,46 @@ const AddressSearch = () => {
         onLoad={onScriptLoad}
       />
       <div>
-        <h1 style={{ fontWeight: "300", display: "inline" }}>Urban or </h1>
-        <h1 style={{ fontWeight: "700", display: "inline", color: "#ff4f38" }}>
+        <h1 style={{ fontWeight: "300", display: "inline", fontSize: "2.0em" }}>
+          Urban or{" "}
+        </h1>
+        <h1
+          style={{
+            fontWeight: "700",
+            display: "inline",
+            color: "#ff4f38",
+            fontSize: "2.0em",
+          }}
+        >
           Suburban?
         </h1>
       </div>
+      <div
+        style={{ width: isDesktop ? "50%" : "90%", display: "inline-block" }}
+      >
+        <h5 style={{ display: "inline-block", fontWeight: "200" }}>
+          <span style={{ fontWeight: "400" }}>City dweller</span> or{" "}
+          <span style={{ color: "#ff4f38", fontWeight: "400" }}>
+            suburbanite
+          </span>
+          ? Find out where your neighborhood fits from people in your community,
+          based on{" "}
+          <span style={{ fontWeight: "400", color: "ff4f38" }}>
+            <a
+              href="https://www.huduser.gov/portal/AHS-neighborhood-description-study-2017.html#overview-tab"
+              target="_blank"
+            >
+              HUD’s American Housing Survey
+            </a>
+          </span>
+          .
+        </h5>
+      </div>
       <Spin spinning={isLoading}>
         <PlacesAutocomplete
-          value={address}
+          value={addressString}
           onChange={handleChange}
           onSelect={handleSelect}
-          onError={()=>setTestVal("Error")}
           googleCallbackName="onScriptLoad"
           searchOptions={{
             types: ["address"],
@@ -166,46 +171,50 @@ const AddressSearch = () => {
             loading,
           }) => (
             <div style={{ width: "100vw" }}>
-              <Input
-                style={{ width: isDesktop ? "50%" : "75%" }}
-                size="large"
-                allowClear="true"
-                {...getInputProps({
-                  placeholder: "Enter an address...",
-                  className: "location-search-input",
-                })}
-              />
-              <Button
-                type="danger"
-                shape="square"
-                size="large"
-                icon={<SearchOutlined />}
-                disabled={!searchEnabled}
-                onClick={censusAPI}
-              />
-              <div className="autocomplete-dropdown-container">
+              <div>
+                <Input
+                  style={{ width: isDesktop ? "50%" : "75%" }}
+                  size="large"
+                  {...getInputProps({
+                    placeholder: "Enter an address...",
+                    className: "location-search-input",
+                  })}
+                  onPressEnter={handleButtonClick}
+                  allowClear="true"
+                />
+                <Button
+                  type="danger"
+                  shape="square"
+                  size="large"
+                  icon={<SearchOutlined />}
+                  disabled={!searchEnabled}
+                  onClick={handleButtonClick}
+                />
+              </div>
+              <div
+                className="autocomplete-dropdown-container"
+                style={{
+                  display: "inline-block",
+                  width: isDesktop ? "52.5%" : "90%",
+                }}
+              >
                 {loading && <div>Loading...</div>}
                 {suggestions.map((suggestion) => {
                   const className = suggestion.active
                     ? "suggestion-item--active"
                     : "suggestion-item";
-                  // inline style for demonstration purpose
-
-                  const style = {
-                    backgroundColor: "rgba(255,255,255,0.5)",
-                    cursor: "pointer",
-                  };
-                  //: { backgroundColor: "#ffffff", cursor: "pointer" };//suggestion.active
-                  // ? { backgroundColor: "#ff2e4a", cursor: "pointer" }
-                  //: { backgroundColor: "#ffffff", cursor: "pointer" };
+                    const style = suggestion.active
+                    ? { backgroundColor: '#cccccc', cursor: 'pointer' }
+                    : { backgroundColor: 'rgba(237,237,237,.25)', cursor: 'pointer' };
                   return (
-                    <div key='0'
+                    <div style={{borderRadius: "4px"}}
+                      key="0"
                       {...getSuggestionItemProps(suggestion, {
                         className,
                         style,
                       })}
                     >
-                      <span>{suggestion.description}</span>
+                      <span style={{color: "#333333"}}>{suggestion.description}</span>
                     </div>
                   );
                 })}
@@ -213,17 +222,19 @@ const AddressSearch = () => {
             </div>
           )}
         </PlacesAutocomplete>
+
+        <Modal
+          footer={null}
+          style={{ top: isDesktop ? 20 : 0 }}
+          title={"Survey Results"}
+          visible={modalIsVisible}
+          onCancel={() => setModalIsVisible(false)}
+        >
+          <LocationResult data={queryResults} />
+        </Modal>
       </Spin>
-      <h2>{testVal}</h2>
     </div>
   );
 };
-/*
-const styles = {
-  container: isWidescreen => ({
-    width: !isWidescreen ? "50%" : "100%",
-  })
-};
-*/
 
 export default AddressSearch;

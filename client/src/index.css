@@ -1,11 +1,32 @@
+.App {
+  background-color: white;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  font-size: calc(10px + 2vmin);
+}
+html, body {
+  overflow-x: hidden;
+}
 body {
+  position: relative;
   margin: 0;
   font-family:'Roboto';
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
+h1 {
+  font-size: calc(68px * 1vmin);
+}
 
-code {
-  font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New',
-    monospace;
+.location-search-input,
+.location-search-input:focus,
+.location-search-input:active {
+  font-size: 16px;
+}
+
+.autocomplete-dropdown-container {
+  font-size: 16px;
+  font-weight: 400;
+  z-index: 1000;
 }
