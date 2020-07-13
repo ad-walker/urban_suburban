@@ -29,8 +29,15 @@ h1.title-suburban {
   color: #ff4f38;
   font-size: 2.0em;
 }
+h3.description {
+  font-weight: 300;
+}
 span.text-red-em {
   color: #ff4f38;
+  font-weight: 400;
+}
+span.text-black-em {
+  color: #000000;
   font-weight: 400;
 }
 div.bg-image {

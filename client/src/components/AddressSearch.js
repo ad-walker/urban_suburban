@@ -1,12 +1,11 @@
 import React, { useState } from "react";
 import LocationResult from "./LocationResult";
-import { Input, Button, Spin, Modal } from "antd";
+import { Input, Button, Spin, Modal, message } from "antd";
 import { SearchOutlined } from "@ant-design/icons";
 import PlacesAutocomplete from "react-places-autocomplete";
 import { geocodeByAddress } from "react-places-autocomplete";
 import { useMediaQuery } from "react-responsive";
-import { censusAPI, queryOnGeoId } from "../api";
-
+import { censusAPI, queryOnGeoId, formatCensusAddress } from "../api";
 // Import React Scrit Libraray to load Google object
 import Script from "react-load-script";
 
@@ -36,22 +35,7 @@ const AddressSearch = () => {
     censusAPI(queryObj)
       .then((id) => queryOnGeoId(id))
       .then((response) => {
-        let classification = "";
-        switch (response[0].upsai_cat_controlled) {
-          case 1:
-            classification = "Urban";
-            break;
-          case 2:
-            classification = "Suburban";
-            break;
-          case 3:
-            classification = "Rural";
-            break;
-          default:
-            classification = "Unknown";
-            break;
-        }
-        response.classification = classification;
+        response.address_string = addressString;
         // Set a whole mess o' state.
         setQueryResults(response);
         setIsLoading(false);
@@ -62,34 +46,19 @@ const AddressSearch = () => {
   const handleSelect = (address) => {
     setAddressString(address);
     geocodeByAddress(address)
-      .then((results) => {
-        // Hard code these values because it's the dataset the survey is based on.
+      .then((googleAddressObj) => {
+        // Create the query object and hard code these values because
+        // it's the dataset the study is based on.
         let censusQuery = { benchmark: 4, vintage: 417, format: "json" };
-        // Loop over the Google Maps object and extract the components needed
-        // for the Census API.
-        for (let i = 0; i < results[0].address_components.length; i++) {
+        // Google returns a nice formatted_address string that would be perfect except it occassionally
+        // includes a "premise" from the places API. Just to be safe, we'll build our own address
+        // string from the individual address_components.
+        // prettier-ignore
+        censusQuery.address = formatCensusAddress(googleAddressObj[0].address_components);
+        if (censusQuery.address == null) {
           // prettier-ignore
-          for (let j = 0; j < results[0].address_components[i].types.length; j++) {
-            switch (results[0].address_components[i].types[j]) {
-              case "street_number":
-                censusQuery.street = results[0].address_components[i].short_name;
-                break;
-              case "route":
-                censusQuery.street += " " + results[0].address_components[i].short_name;
-                break;
-              case "locality":
-                censusQuery.city = results[0].address_components[i].short_name;
-                break;
-              case "administrative_area_level_1":
-                censusQuery.state = results[0].address_components[i].short_name;
-                break;
-              case "postal_code":
-                censusQuery.zip = results[0].address_components[i].short_name;
-                break;
-              default:
-                break;
-            }
-          }
+          message.error("Valid street address required, e.g. 6925 Hollywood Blvd");
+          return;
         }
         setQueryObj(censusQuery);
         setSearchEnabled(true);
@@ -120,17 +89,14 @@ const AddressSearch = () => {
       >
         <h5 style={{ display: "inline-block", fontWeight: "200" }}>
           <span style={{ fontWeight: "400" }}>City dweller</span> or{" "}
-          <span className="text-red-em">
-            suburbanite
-          </span>
-          ? Find out where your neighborhood fits from people in your community,
-          based on{" "}
+          <span className="text-red-em">suburbanite</span>? Find out where you
+          fit based on{" "}
           <span className="text-red-em">
             <a
               href="https://www.huduser.gov/portal/AHS-neighborhood-description-study-2017.html#overview-tab"
               target="_blank"
             >
-              HUD’s American Housing Survey
+              HUD data
             </a>
           </span>
           .
@@ -214,7 +180,6 @@ const AddressSearch = () => {
         <Modal
           footer={null}
           style={{ top: isDesktop ? 20 : 0 }}
-          title={"Survey Results"}
           visible={modalIsVisible}
           onCancel={() => setModalIsVisible(false)}
         >

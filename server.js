@@ -1,5 +1,4 @@
 "use strict";
-// Require process, so we can mock environment variables.
 const process = require("process");
 const path = require("path");
 const express = require("express");
@@ -17,12 +16,12 @@ console.log("Enviornment: " + process.env.NODE_ENV);
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use(bodyParser.json());
 
-// [START cloud_sql_postgres_knex_create_tcp]
+// GOOGLE: [START cloud_sql_postgres_knex_create_tcp]
 const connectWithTcp = (config) => {
   // Extract host and port from socket address
   const dbSocketAddr = process.env.DB_HOST.split(":"); // e.g. '127.0.0.1:5432'
 
-  // Establish a connection to the database
+  // Establish a connection to the postgres db
   return Knex({
     client: "pg",
     connection: {
@@ -38,11 +37,10 @@ const connectWithTcp = (config) => {
 };
 // [END cloud_sql_postgres_knex_create_tcp]
 
-// [START cloud_sql_postgres_knex_create_socket]
+// GOOGLE: [START cloud_sql_postgres_knex_create_socket]
 const connectWithUnixSockets = (config) => {
   const dbSocketPath = process.env.DB_SOCKET_PATH || "/cloudsql";
-
-  // Establish a connection to the database
+  // Establish a connection to the postgres db
   return Knex({
     client: "pg",
     connection: {
@@ -57,7 +55,7 @@ const connectWithUnixSockets = (config) => {
 };
 // [END cloud_sql_postgres_knex_create_socket]
 
-// Initialize Knex, a Node.js SQL query builder library with built-in connection pooling.
+// GOOGLE: Initialize Knex, a Node.js SQL query builder library with built-in connection pooling.
 const connect = () => {
   // Configure which instance and what database user to connect with.
   // Remember - storing secrets in plaintext is potentially unsafe. Consider using
@@ -127,7 +125,8 @@ app.post("/api/address", async (req, res) => {
   fetch(req.body.url)
     .then((res) => res.json())
     .then((json) => {
-      // Default to -1 in case we can't find a value.
+      // Default to -1 in case we can't find a value, our DB uses this key
+      // as an error entry.
       let result = { id: -1 };
       if (json.result.addressMatches.length > 0) {
         result.id =
@@ -140,13 +139,13 @@ app.post("/api/address", async (req, res) => {
 if (process.env.NODE_ENV === "production") {
   // Serve any static files
   app.use(express.static(path.join(__dirname, "/client/build")));
-
   // Handle React routing, return all requests to React app
   app.get("/*", (req, res) => {
     res.sendFile(path.join(__dirname, "/client/build/index.html"));
   });
 }
 
+// GAE defaults to port 8080.
 const PORT = process.env.PORT || 8080;
 const server = app.listen(PORT, () => {
   console.log(`App listening on port ${PORT}`);
