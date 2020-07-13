@@ -6,12 +6,11 @@ import "antd/dist/antd-red.css";
 
 function App() {
   return (
-    <div className={'App'}>
+    <div className={"App"}>
       <Page>
-      <AddressSearch />
+        <AddressSearch />
       </Page>
     </div>
   );
 }
-
 export default App;

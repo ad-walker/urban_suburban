@@ -18,7 +18,37 @@ body {
 h1 {
   font-size: calc(68px * 1vmin);
 }
-
+h1.title-urban {
+  font-weight: 300;
+  display: inline;
+  font-size: 2.0em;
+}
+h1.title-suburban {
+  font-weight: "700";
+  display: inline;
+  color: #ff4f38;
+  font-size: 2.0em;
+}
+span.text-red-em {
+  color: #ff4f38;
+  font-weight: 400;
+}
+div.bg-image {
+  background-size: contain;
+  background-position: center bottom;
+  width: 100%;
+  min-height: 100vh;
+  background-attachment: fixed;
+  background-repeat: no-repeat;
+  background-color: white;
+}
+.address-search-container {
+  justify-content: center;
+  text-align: center;
+  align-items: center;
+  margin: 8% 0 0 0;
+  display: float;
+}
 .location-search-input,
 .location-search-input:focus,
 .location-search-input:active {

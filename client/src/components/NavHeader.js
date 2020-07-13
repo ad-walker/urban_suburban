@@ -3,11 +3,13 @@ import { PageHeader, Button, Menu, Dropdown, message } from "antd";
 import { MenuUnfoldOutlined} from "@ant-design/icons";
 import HomeIcon from "../images/icon.svg";
 import { useMediaQuery } from "react-responsive";
-
+// TODO: Split these into two components rather than evaluating in one.
 function NavHeader(props) {
+  // Get that screen size.
   const isDesktop = useMediaQuery({
     query: "(min-device-width: 1224px)",
   });
+  // Desktop nav is a bar across the top.
   if (isDesktop) {
     return (
       <div className="site-page-header-ghost-wrapper">
@@ -27,8 +29,9 @@ function NavHeader(props) {
         />
       </div>
     );
-  } else {
-
+  } 
+  // Mobile is a drop down.
+  else {
     const handleMenuClick = (e) => {message.info('Click on menu item.');};
     const menu = (
       <Menu onClick={handleMenuClick}>
@@ -57,5 +60,4 @@ function NavHeader(props) {
     );
   }
 }
-
 export default NavHeader;

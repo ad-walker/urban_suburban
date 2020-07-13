@@ -24,7 +24,7 @@ const AddressSearch = () => {
     // Rely on selection from the suggestion list,
     // be it via click or keyboard selection to enable
     // search.
-    setSearchEnabled(false)
+    setSearchEnabled(false);
     setAddressString(address);
   };
 
@@ -63,8 +63,10 @@ const AddressSearch = () => {
     setAddressString(address);
     geocodeByAddress(address)
       .then((results) => {
-        console.log(results);
+        // Hard code these values because it's the dataset the survey is based on.
         let censusQuery = { benchmark: 4, vintage: 417, format: "json" };
+        // Loop over the Google Maps object and extract the components needed
+        // for the Census API.
         for (let i = 0; i < results[0].address_components.length; i++) {
           // prettier-ignore
           for (let j = 0; j < results[0].address_components[i].types.length; j++) {
@@ -100,15 +102,7 @@ const AddressSearch = () => {
   };
 
   return (
-    <div
-      style={{
-        justifyContent: "center",
-        textAlign: "center",
-        alignItems: "center",
-        margin: "8% 0 0 0",
-        display: "float",
-      }}
-    >
+    <div className="address-search-container">
       <Script
         url={
           "https://maps.googleapis.com/maps/api/js?key=" +
@@ -118,31 +112,20 @@ const AddressSearch = () => {
         onLoad={onScriptLoad}
       />
       <div>
-        <h1 style={{ fontWeight: "300", display: "inline", fontSize: "2.0em" }}>
-          Urban or{" "}
-        </h1>
-        <h1
-          style={{
-            fontWeight: "700",
-            display: "inline",
-            color: "#ff4f38",
-            fontSize: "2.0em",
-          }}
-        >
-          Suburban?
-        </h1>
+        <h1 className="title-urban">Urban or </h1>
+        <h1 className="title-suburban">Suburban?</h1>
       </div>
       <div
         style={{ width: isDesktop ? "50%" : "90%", display: "inline-block" }}
       >
         <h5 style={{ display: "inline-block", fontWeight: "200" }}>
           <span style={{ fontWeight: "400" }}>City dweller</span> or{" "}
-          <span style={{ color: "#ff4f38", fontWeight: "400" }}>
+          <span className="text-red-em">
             suburbanite
           </span>
           ? Find out where your neighborhood fits from people in your community,
           based on{" "}
-          <span style={{ fontWeight: "400", color: "ff4f38" }}>
+          <span className="text-red-em">
             <a
               href="https://www.huduser.gov/portal/AHS-neighborhood-description-study-2017.html#overview-tab"
               target="_blank"
@@ -203,18 +186,23 @@ const AddressSearch = () => {
                   const className = suggestion.active
                     ? "suggestion-item--active"
                     : "suggestion-item";
-                    const style = suggestion.active
-                    ? { backgroundColor: '#cccccc', cursor: 'pointer' }
-                    : { backgroundColor: 'rgba(237,237,237,.25)', cursor: 'pointer' };
+                  const style = suggestion.active
+                    ? { backgroundColor: "#cccccc", cursor: "pointer" }
+                    : {
+                        backgroundColor: "rgba(237,237,237,.25)",
+                        cursor: "pointer",
+                      };
                   return (
-                    <div style={{borderRadius: "4px"}}
+                    <div
                       key="0"
                       {...getSuggestionItemProps(suggestion, {
                         className,
                         style,
                       })}
                     >
-                      <span style={{color: "#333333"}}>{suggestion.description}</span>
+                      <span style={{ color: "#333333" }}>
+                        {suggestion.description}
+                      </span>
                     </div>
                   );
                 })}
