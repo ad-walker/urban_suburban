@@ -1,8 +1,9 @@
 import React from "react";
-import { PageHeader, Button, Menu, Dropdown, message } from "antd";
-import { MenuUnfoldOutlined} from "@ant-design/icons";
+import { PageHeader, Button, Menu, Dropdown } from "antd";
+import { MenuUnfoldOutlined, GithubOutlined } from "@ant-design/icons";
 import HomeIcon from "../images/icon.svg";
 import { useMediaQuery } from "react-responsive";
+import { Link } from "@reach/router";
 // TODO: Split these into two components rather than evaluating in one.
 function NavHeader(props) {
   // Get that screen size.
@@ -15,48 +16,54 @@ function NavHeader(props) {
       <div className="site-page-header-ghost-wrapper">
         <PageHeader
           extra={[
-            <Button key="item1" type="text" size="large">
-              Something
+            <Button key="home" type="text" size="large">
+              <Link to="/"> Home</Link>
             </Button>,
-            <Button key="item2" type="text" size="large">
-              Something
+            <Button key="about" type="text" size="large">
+              <Link to="/about"> About</Link>
             </Button>,
-            <Button key="item3" type="primary" size="large" shape="round">
-              Something
+            <Button
+              key="item3"
+              type="primary"
+              size="large"
+              shape="round"
+              icon={<GithubOutlined />}
+            >
+              Fork Me
             </Button>,
           ]}
           avatar={{ src: HomeIcon, size: "large", shape: "square" }}
         />
       </div>
     );
-  } 
+  }
   // Mobile is a drop down.
   else {
-    const handleMenuClick = (e) => {message.info('Click on menu item.');};
     const menu = (
-      <Menu onClick={handleMenuClick}>
-        <Menu.Item key="1">
-          Something
+      <Menu>
+        <Menu.Item key="home">
+          <Link to="/"> Home</Link>
         </Menu.Item>
-        <Menu.Item key="2">
-          Something
+        <Menu.Item key="about">
+          <Link to="/about">About</Link>
         </Menu.Item>
         <Menu.Item key="3">
-          Something
+          <GithubOutlined />
+          Fork
         </Menu.Item>
       </Menu>
     );
     return (
-        <PageHeader
+      <PageHeader
         extra={[
           <Dropdown key="dropdown" overlay={menu}>
             <Button type="primary">
               <MenuUnfoldOutlined />
             </Button>
-          </Dropdown>
+          </Dropdown>,
         ]}
-          avatar={{ src: HomeIcon, size: "large", shape: "square" }}
-        />
+        avatar={{ src: HomeIcon, size: "large", shape: "square" }}
+      />
     );
   }
 }

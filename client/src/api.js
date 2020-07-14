@@ -1,6 +1,6 @@
 import { createHmac } from "crypto";
 export const censusAPI = async (query) => {
-  return new Promise((resolve, reject) => {
+  return new Promise(async (resolve, reject) => {
     // Build the query string from values parsed by Google.
     var url = new URL(
       // Changed to one line address query based on testing, 321 Avenue F, Pittsburgh, PA, USA would not
@@ -15,12 +15,18 @@ export const censusAPI = async (query) => {
     let signature = createRequestSignature(reqBody);
 
     try {
-      fetch("/api/address", {
+      await fetch("/api/address", {
         method: "POST",
         headers: { "Content-Type": "application/json", Signature: signature },
         body: reqBody,
       })
-        .then((response) => response.json())
+        .then((response) => {
+          if(!response.ok) {
+            console.log(response.statusText)
+            throw new Error(response.statusText);
+          }
+          return response.json()
+        })
         .then((json) => {
           resolve(json.id);
         });
@@ -31,11 +37,11 @@ export const censusAPI = async (query) => {
 };
 
 export const queryOnGeoId = async (id) => {
-  return new Promise((resolve, reject) => {
+  return new Promise(async(resolve, reject) => {
     const reqBody = JSON.stringify({ geoid: parseInt(id) });
     const signature = createRequestSignature(reqBody);
     try {
-      fetch("/api/geoid", {
+     await  fetch("/api/geoid", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -43,10 +49,11 @@ export const queryOnGeoId = async (id) => {
         },
         body: reqBody,
       })
-        .then((response) => response.json())
-        .then((json) => {
-          resolve(json);
-        });
+        .then((response) => {
+          if(!response.ok)
+            throw new Error(response.statusText)
+          resolve(response.json());
+        })
     } catch (err) {
       reject(err);
     }

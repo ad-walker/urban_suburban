@@ -32,15 +32,22 @@ const AddressSearch = () => {
     setIsLoading(true);
     // Query the census endpoint and append a classification
     // to the object for use by the modal.
-    censusAPI(queryObj)
-      .then((id) => queryOnGeoId(id))
-      .then((response) => {
-        response.address_string = addressString;
-        // Set a whole mess o' state.
-        setQueryResults(response);
-        setIsLoading(false);
-        setModalIsVisible(true);
-      });
+    try {
+      await censusAPI(queryObj)
+        .then(async (id) => await queryOnGeoId(id))
+        .then((response) => {
+          response.address_string = addressString;
+          // Set a whole mess o' state.
+          setQueryResults(response);
+          setIsLoading(false);
+          setModalIsVisible(true);
+        });
+    } catch {
+      message.error(
+        "Something went wrong. Don't worry, it's probably not your fault..."
+      );
+      setIsLoading(false);
+    }
   };
 
   const handleSelect = (address) => {
@@ -90,13 +97,13 @@ const AddressSearch = () => {
         <h5 style={{ display: "inline-block", fontWeight: "200" }}>
           <span style={{ fontWeight: "400" }}>City dweller</span> or{" "}
           <span className="text-red-em">suburbanite</span>? Find out where you
-          fit based on{" "}
+          fit based on a{" "}
           <span className="text-red-em">
             <a
               href="https://www.huduser.gov/portal/AHS-neighborhood-description-study-2017.html#overview-tab"
               target="_blank"
             >
-              HUD data
+              HUD study
             </a>
           </span>
           .

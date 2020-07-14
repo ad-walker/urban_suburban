@@ -103,17 +103,23 @@ const connect = () => {
 
 const knex = connect();
 
-const getData = async (knex, id) => {
-  return await knex.select("*").from("tracts").where("geoid", id).limit(1);
-};
-
 app.post("/api/geoid", async (req, res) => {
   if (!verifySignature(req)) {
     res.status(500);
     return;
   }
-  let result = await getData(knex, req.body.geoid);
-  res.status(200).json(result);
+  try {
+    let result = await knex
+      .select("*")
+      .from("tracts")
+      .where("geoid", req.body.geoid)
+      .limit(1)
+      .timeout(5000);
+    // Knex throws its own error
+    res.status(200).json(result);
+  } catch (error) {
+    res.status(500);
+  }
 });
 
 app.post("/api/address", async (req, res) => {
@@ -122,18 +128,27 @@ app.post("/api/address", async (req, res) => {
     return;
   }
 
-  fetch(req.body.url)
-    .then((res) => res.json())
-    .then((json) => {
-      // Default to -1 in case we can't find a value, our DB uses this key
-      // as an error entry.
-      let result = { id: -1 };
-      if (json.result.addressMatches.length > 0) {
-        result.id =
-          json.result.addressMatches[0].geographies["Census Tracts"][0].GEOID;
-      }
-      res.status(200).json(result);
-    });
+  try {
+    await fetch(req.body.url)
+      .then((res) => {
+        if (res.status != 200) {
+          throw Error(res.statusText);
+        }
+        return res.json();
+      })
+      .then((json) => {
+        // Default to -1 in case we can't find a value, our DB uses this key
+        // as an error entry.
+        let result = { id: -1 };
+        if (json.result.addressMatches.length > 0) {
+          result.id =
+            json.result.addressMatches[0].geographies["Census Tracts"][0].GEOID;
+        }
+        res.status(200).json(result);
+      });
+  } catch {
+    res.status(500);
+  }
 });
 
 if (process.env.NODE_ENV === "production") {
