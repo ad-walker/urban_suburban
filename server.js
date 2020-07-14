@@ -7,16 +7,18 @@ const Knex = require("knex");
 const fetch = require("node-fetch");
 const app = express();
 app.enable("trust proxy");
-// If not in production, read the local .env file.
+// GAE uses app.yaml, for dev we'll juse use the .env file.
 if (process.env.NODE_ENV !== "production") {
   require("dotenv").config();
 }
-console.log("Enviornment: " + process.env.NODE_ENV);
-// Automatically parse request body as form data.
+// Expect json in our request body.
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use(bodyParser.json());
 
-// GOOGLE: [START cloud_sql_postgres_knex_create_tcp]
+// Knex configuration from Google's docs:
+// https://github.com/GoogleCloudPlatform/nodejs-docs-samples/blob/master/cloud-sql/postgres/knex/server.js
+
+// [START cloud_sql_postgres_knex_create_tcp]
 const connectWithTcp = (config) => {
   // Extract host and port from socket address
   const dbSocketAddr = process.env.DB_HOST.split(":"); // e.g. '127.0.0.1:5432'
@@ -37,7 +39,7 @@ const connectWithTcp = (config) => {
 };
 // [END cloud_sql_postgres_knex_create_tcp]
 
-// GOOGLE: [START cloud_sql_postgres_knex_create_socket]
+// [START cloud_sql_postgres_knex_create_socket]
 const connectWithUnixSockets = (config) => {
   const dbSocketPath = process.env.DB_SOCKET_PATH || "/cloudsql";
   // Establish a connection to the postgres db
@@ -55,7 +57,7 @@ const connectWithUnixSockets = (config) => {
 };
 // [END cloud_sql_postgres_knex_create_socket]
 
-// GOOGLE: Initialize Knex, a Node.js SQL query builder library with built-in connection pooling.
+// Initialize Knex, a Node.js SQL query builder library with built-in connection pooling.
 const connect = () => {
   // Configure which instance and what database user to connect with.
   // Remember - storing secrets in plaintext is potentially unsafe. Consider using
@@ -131,19 +133,17 @@ app.post("/api/address", async (req, res) => {
   try {
     await fetch(req.body.url)
       .then((res) => {
-        if (res.status != 200) {
-          throw Error(res.statusText);
-        }
+        if (res.status != 200) throw Error(res.statusText);
         return res.json();
       })
       .then((json) => {
         // Default to -1 in case we can't find a value, our DB uses this key
         // as an error entry.
         let result = { id: -1 };
-        if (json.result.addressMatches.length > 0) {
-          result.id =
-            json.result.addressMatches[0].geographies["Census Tracts"][0].GEOID;
-        }
+        // prettier-ignore
+        if (json.result.addressMatches.length > 0)
+          result.id = json.result.addressMatches[0].geographies["Census Tracts"][0].GEOID;
+        // Return the query result or the error case.
         res.status(200).json(result);
       });
   } catch {
@@ -154,7 +154,7 @@ app.post("/api/address", async (req, res) => {
 if (process.env.NODE_ENV === "production") {
   // Serve any static files
   app.use(express.static(path.join(__dirname, "/client/build")));
-  // Handle React routing, return all requests to React app
+  // Return all requests to React app for client-side routing.
   app.get("/*", (req, res) => {
     res.sendFile(path.join(__dirname, "/client/build/index.html"));
   });
@@ -166,6 +166,7 @@ const server = app.listen(PORT, () => {
   console.log(`App listening on port ${PORT}`);
 });
 
+// Basic HMAC signing for requests.
 const verifySignature = (req) => {
   const crypto = require("crypto");
   const rawString = JSON.stringify(req.body);

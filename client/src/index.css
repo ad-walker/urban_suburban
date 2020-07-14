@@ -60,11 +60,18 @@ div.bg-image {
   background-repeat: no-repeat;
   background-color: white;
 }
-.address-search-container {
+.call-to-action {
   justify-content: center;
   text-align: center;
   align-items: center;
-  margin: 8% 0 0 0;
+  margin: 8% 1% 0 1%;
+  display: float;
+}
+.address-search-container{
+  justify-content: center;
+  text-align: center;
+  align-items: center;
+  margin: 0% 0 0 0;
   display: float;
 }
 .location-search-input,

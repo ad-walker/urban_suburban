@@ -4,12 +4,9 @@ import SuburbanImage from "../images/suburban.svg";
 import RuralImage from "../images/rural.svg";
 import UnknownImage from "../images/unknown.svg";
 import { Statistic, Card, Row, Col } from "antd";
-import { useMediaQuery } from "react-responsive";
+import MediaQuery from "react-responsive";
 
 function LocationResult(props) {
-  const isDesktop = useMediaQuery({
-    query: "(min-device-width: 1224px)",
-  });
   let { data } = props;
   data = data[0];
   // Enum to access the images easily.
@@ -82,47 +79,6 @@ function LocationResult(props) {
     data.address_string +
     "&benchmark=4&vintage=417";
 
-  // Tack on some extra data for dekstop viewers.
-  const footer = isDesktop ? (
-    <Card title="Census Data" bordered={false} style={{ alignItems: "center" }}>
-      <Row gutter={16}>
-        <Col span={12}>
-          <Statistic
-            title="Est. Occupied Households"
-            value={data.occupied_housing_units_est}
-            formatter={(value) => value}
-          />
-        </Col>
-        <Col span={12}>
-          <Statistic
-            title="Tract"
-            value={data.tract}
-            formatter={(value) => value}
-          />
-        </Col>
-        <Col span={12}>
-          <Statistic
-            title="Geo Id"
-            value={data.geoid}
-            formatter={(value) => value}
-          />
-        </Col>
-        <Col span={12}>
-          <Statistic
-            title="Census Geocoder"
-            value={
-              <a href={censusLink} target="_blank">
-                Link
-              </a>
-            }
-            formatter={(value) => value}
-          />
-        </Col>
-      </Row>
-    </Card>
-  ) : (
-    <></>
-  );
   return (
     <>
       <div style={{ textAlign: "center" }}>
@@ -147,7 +103,49 @@ function LocationResult(props) {
             <Row>{stats}</Row>
           </div>
         </div>
-        {footer}
+        {/* Desktop viewers get extra info. */}
+        <MediaQuery minDeviceWidth={1224}>
+          <Card
+            title="Census Data"
+            bordered={false}
+            style={{ alignItems: "center" }}
+          >
+            <Row gutter={16}>
+              <Col span={12}>
+                <Statistic
+                  title="Est. Occupied Households"
+                  value={data.occupied_housing_units_est}
+                  formatter={(value) => value}
+                />
+              </Col>
+              <Col span={12}>
+                <Statistic
+                  title="Tract"
+                  value={data.tract}
+                  formatter={(value) => value}
+                />
+              </Col>
+              <Col span={12}>
+                <Statistic
+                  title="Geo Id"
+                  value={data.geoid}
+                  formatter={(value) => value}
+                />
+              </Col>
+              <Col span={12}>
+                <Statistic
+                  title="Census Geocoder"
+                  value={
+                    <a href={censusLink} target="_blank">
+                      Link
+                    </a>
+                  }
+                  formatter={(value) => value}
+                />
+              </Col>
+            </Row>
+          </Card>
+        </MediaQuery>
       </div>
     </>
   );
