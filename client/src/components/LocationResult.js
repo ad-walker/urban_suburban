@@ -8,7 +8,9 @@ import MediaQuery from "react-responsive";
 
 function LocationResult(props) {
   let { data } = props;
+  let address = data.address_string;
   data = data[0];
+  data.address_string = address;
   // Enum to access the images easily.
   const images = {
     URBAN: UrbanImage,

@@ -2,7 +2,7 @@ import React from "react";
 import "./index.css";
 import "antd/dist/antd-red.css";
 import Home from "./components/Home"
-import About from "./components/About";
+import FAQ from "./components/FAQ";
 import { Router } from "@reach/router";
 
 function App() {
@@ -10,7 +10,7 @@ function App() {
     <div className={"App"}>
       <Router>
         <Home path="/"/>
-        <About path="about" />
+        <FAQ path="faq" />
       </Router>
     </div>
   );

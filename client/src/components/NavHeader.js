@@ -12,12 +12,12 @@ function NavHeader() {
       <Menu.Item key="home">
         <Link to="/"> Home</Link>
       </Menu.Item>
-      <Menu.Item key="about">
-        <Link to="/about">About</Link>
+      <Menu.Item key="faq">
+        <Link to="/faq">FAQ</Link>
       </Menu.Item>
-      <Menu.Item key="3">
+      <Menu.Item key="3" onClick={() => window.open("https://github.com/ad-walker/", "_blank")}>
         <GithubOutlined />
-        Fork
+        My GitHub
       </Menu.Item>
     </Menu>
   );
@@ -32,8 +32,8 @@ function NavHeader() {
               <Button key="home" type="text" size="large">
                 <Link to="/"> Home</Link>
               </Button>,
-              <Button key="about" type="text" size="large">
-                <Link to="/about"> About</Link>
+              <Button key="faq" type="text" size="large">
+                <Link to="/faq"> FAQ</Link>
               </Button>,
               <Button
                 key="item3"
@@ -41,8 +41,10 @@ function NavHeader() {
                 size="large"
                 shape="round"
                 icon={<GithubOutlined />}
+                // Hacky workaround of weird antd styling
+                onClick={() => window.open("https://github.com/ad-walker/", "_blank")}
               >
-                Fork Me
+                My GitHub
               </Button>,
             ]}
             avatar={{ src: HomeIcon, size: "large", shape: "square" }}
